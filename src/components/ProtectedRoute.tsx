@@ -7,7 +7,7 @@ import { auth } from "@/lib/firebase";
 import Loader from "./Loader";
 
 const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"];
-const PRIVATE_ROUTE_PREFIXES = ["/dashboard", "/map", "/projects", "/analytics"];
+const PRIVATE_ROUTE_PREFIXES = ["/dashboard", "/map", "/project", "/analytics"];
 
 const matchesPrefix = (pathname: string, prefixes: string[]) => {
   return prefixes.some(prefix => pathname.startsWith(prefix));
