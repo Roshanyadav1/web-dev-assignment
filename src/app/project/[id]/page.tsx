@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getProjectImages, uploadProjectImage, uploadProjectMedia, deleteProjectMedia, getProjectMedia, deleteAllProjectImages } from '@/lib/firebase';
+import { getProjectImages, uploadProjectImage, uploadProjectMedia, getProjectMedia, deleteAllProjectImages } from '@/lib/firebase';
 import { ArrowLeft, ImagePlus, Video, Trash2, Loader2 } from 'lucide-react';
 
 export default function ProjectPage() {
@@ -22,8 +22,6 @@ export default function ProjectPage() {
                 getProjectImages(projectId),
                 getProjectMedia(projectId),
             ]);
-     console.log("Raw images data:", imgs);
-        console.log("Raw videos data:", vids);
             setImages(imgs.map((img: any) => ({ id: img.id, url: img.url ?? '', name: img.name ?? '' })));
             setVideos(vids.map((vid: any) => ({ id: vid.id, url: vid.url ?? '', name: vid.name ?? '' })));
             setLoading(false);
@@ -53,21 +51,17 @@ export default function ProjectPage() {
         }
     };
 
-
-    const handleDelete = async (type: 'image' | 'video', id: string, name: string) => {
-        try {
-            const fullStoragePath = `projects/${projectId}/${name}`;
-            await deleteProjectMedia(projectId, id, fullStoragePath);
-            await deleteAllProjectImages(projectId)
-            await fetchMedia();
-        } catch (err) {
-            console.error("Delete failed:", err);
-            alert('Delete failed');
-        }
-    };
-
-    console.log(images , "images");
-    
+    // no feature for delete now
+    // const handleDelete = async (type: 'image' | 'video', id: string, name: string) => {
+    //     try {
+    //         const fullStoragePath = `projects/${projectId}/${name}`;
+    //         await deleteAllProjectImages(projectId)
+    //         await fetchMedia();
+    //     } catch (err) {
+    //         console.error("Delete failed:", err);
+    //         alert('Delete failed');
+    //     }
+    // };
 
     return (
         <div className="p-6 space-y-6">
@@ -113,12 +107,6 @@ export default function ProjectPage() {
                                             alt={img.name}
                                             className="rounded shadow transition duration-300 hover:scale-105"
                                         />
-                                        <button
-                                            className="absolute top-2 right-2 text-white bg-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100"
-                                            onClick={() => handleDelete('image', img.id, img.name)}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -138,12 +126,6 @@ export default function ProjectPage() {
                                             src={vid.url}
                                             className="rounded shadow w-full max-h-[300px] transition duration-300 hover:scale-105"
                                         />
-                                        <button
-                                            className="absolute top-2 right-2 text-white bg-red-600 p-1 rounded-full opacity-0 group-hover:opacity-100"
-                                            onClick={() => handleDelete('video', vid.id, vid.name)}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
                                 ))}
                             </div>

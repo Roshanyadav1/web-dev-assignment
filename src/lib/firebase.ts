@@ -147,21 +147,7 @@ async function getProjectMedia(projectId: string) {
 }
 
 
-async function deleteProjectMedia(projectId: string, mediaId: string, storagePath: string) {
-  try {
-    const fileRef = ref(storage, storagePath);
-    await deleteObject(fileRef);
-
-    const mediaDocRef = doc(db, "projects", projectId, "media", mediaId);
-    await deleteDoc(mediaDocRef);
-    console.log(`Deleted Firestore document with ID ${mediaId}`);
-  } catch (error) {
-    console.error("Error deleting project media:", error);
-    throw error; // Re-throw or handle as needed
-  }
-}
-
-
+ 
 async function deleteAllProjectImages(projectId: string) {
   const imagesCol = collection(db, "projects", projectId, "images");
   const snapshot = await getDocs(imagesCol);
@@ -175,6 +161,5 @@ async function deleteAllProjectImages(projectId: string) {
 export {
   auth, db, storage, getProjects, uploadProjectImage, getProjectImages, uploadProjectMedia,
   getProjectMedia,
-  deleteProjectMedia,
   deleteAllProjectImages
 };

@@ -47,7 +47,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-6 space-y-8 container">
       <button onClick={() => router.back()} className="flex items-center space-x-2 text-blue-600 hover:underline">
         <ArrowLeft size={20} />
         <span>Back</span>

@@ -1,12 +1,8 @@
-import ProtectedRoute from "@/components/ProtectedRoute";
+import Loader from "@/components/Loader";
 
 export default function Home() {
   return (
-    <ProtectedRoute>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Welcome to Home Page</h1>
-      </div>
-    </ProtectedRoute>
+      <Loader />
   );
 }
  

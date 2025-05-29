@@ -3,12 +3,11 @@ import {
   useLoadScript,
   GoogleMap,
   MarkerF,
-  InfoWindowF,
 } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getProjects } from "@/lib/firebase";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { getProjectImages, getProjectMedia, getProjects } from "@/lib/firebase";
+import { Loader2, ArrowLeft, X } from "lucide-react";
 
 const libraries = ["places"] as const;
 
@@ -20,6 +19,10 @@ const mapContainerStyle = {
 export default function MapPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [images, setImages] = useState<{ id: string; url: string; name: string }[]>([]);
+  const [videos, setVideos] = useState<{ id: string; url: string; name: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const { isLoaded, loadError } = useLoadScript({
@@ -43,9 +46,13 @@ export default function MapPage() {
       </div>
     );
 
+
+  // console.log(selectedProject , "the selected project");
+
+
   return (
     <main className="h-screen p-4 flex flex-col gap-4">
-      {/* Back button */}
+      {/* Back Button */}
       <div>
         <button
           onClick={() => router.back()}
@@ -56,50 +63,130 @@ export default function MapPage() {
         </button>
       </div>
 
-      {/* Map Container */}
-      <div className="rounded-xl shadow-lg overflow-hidden flex-1">
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={{ lat: 22.9734, lng: 78.6569 }}
-          zoom={5}
-          options={{
-            disableDefaultUI: true,
-            zoomControl: true,
-            minZoom: 3,
-            maxZoom: 15,
-          }}
-        >
-          {projects.map((project) =>
-            project.latitude && project.longitude ? (
-              <MarkerF
-                key={project.id}
-                position={{ lat: project.latitude, lng: project.longitude }}
-                onClick={() => setSelectedProject(project)}
-                icon={{
-                  url: lucideMapPinSvg,
-                  scaledSize: new window.google.maps.Size(32, 32),
-                  anchor: new window.google.maps.Point(16, 32),
-                }}
-              />
-            ) : null
-          )}
+      {/* Map + Project Details Panel */}
+      <div className="flex flex-1 rounded-xl shadow-lg overflow-hidden relative gap-4">
+        {/* Map */}
+        <div className="w-full h-full">
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={{ lat: 22.9734, lng: 78.6569 }}
+            zoom={5}
+            options={{
+              disableDefaultUI: true,
+              zoomControl: true,
+              minZoom: 3,
+              maxZoom: 15,
+            }}
+          >
+            {projects.map((project) =>
+              project.latitude && project.longitude ? (
+                <MarkerF
+                  key={project.id}
+                  position={{ lat: project.latitude, lng: project.longitude }}
+                  onClick={() => {
+                    const fetchMedia = async () => {
+                      try {
+                        setSelectedProject(project)
 
-          {selectedProject && (
-            <InfoWindowF
-              position={{
-                lat: selectedProject.latitude,
-                lng: selectedProject.longitude,
-              }}
-              onCloseClick={() => setSelectedProject(null)}
-            >
-              <div className="text-sm">
-                <strong>{selectedProject.title}</strong>
-                <br />
-                {selectedProject.location}
+                        setLoading(true);
+                        const [imgs, vids] = await Promise.all([
+                          getProjectImages(project.id),
+                          getProjectMedia(project.id),
+                        ]);
+                        setImages(imgs.map((img: any) => ({ id: img.id, url: img.url ?? '', name: img.name ?? '' })));
+                        setVideos(vids.map((vid: any) => ({ id: vid.id, url: vid.url ?? '', name: vid.name ?? '' })));
+                        setLoading(false);
+                      } catch (error) {
+                        setLoading(false);
+                        alert("Cought in error : ")
+                      }
+                    };
+                    fetchMedia()
+                  }}
+                  icon={{
+                    url: lucideMapPinSvg,
+                    scaledSize: new window.google.maps.Size(32, 32),
+                    anchor: new window.google.maps.Point(16, 32),
+                  }}
+                />
+              ) : null
+            )}
+          </GoogleMap>
+        </div>
+
+        {/* Project Details Drawer */}
+        {selectedProject && (
+          <div className="absolute right-0 top-0 w-full max-w-md h-full bg-white border-l z-10 shadow-lg p-4 overflow-y-auto animate-slideIn">
+            <div className="w-[250px] space-y-2 text-sm">
+              <button onClick={() => setSelectedProject(null)} className="flex items-center space-x-2 text-blue-600 hover:underline">
+                <ArrowLeft size={20} />
+                <span>Back</span>
+              </button>
+              <img
+                src={selectedProject.imageUrl}
+                alt={selectedProject.title}
+                className="w-full h-32 object-cover rounded-md"
+              />
+              <div className="space-y-1">
+                <h3 className="font-semibold text-base">{selectedProject.title}</h3>
+                <p className="text-gray-500 text-xs">📍 {selectedProject.location}</p>
+                <p className="text-gray-700 text-sm">🛒 Orders: {selectedProject.numberOfOrders}</p>
+                <p className="text-gray-700 text-sm">📅 Last Order: {selectedProject.lastOrderDate}</p>
+
+                <div className="flex gap-2 text-xs mt-2 text-gray-600">
+                  <span>🖼 {selectedProject.imageCount} Images</span>
+                  <span>🎥 {selectedProject.videoCount} Videos</span>
+                  <span>🌐 {selectedProject.panoCount} Panos</span>
+                </div>
               </div>
-            </InfoWindowF>
-          )}
-        </GoogleMap>
+
+
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Images</h2>
+                {images.length === 0 ? (
+                  <p className="text-gray-500 italic">No images uploaded yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {images.map((img) => (
+                      <div key={img.id} className="relative group">
+                        <img
+                          src={img.url}
+                          alt={img.name}
+                          className="rounded shadow transition duration-300 hover:scale-105"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold mt-8 mb-2">Videos</h2>
+                {videos.length === 0 ? (
+                  <p className="text-gray-500 italic">No videos uploaded yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {videos.map((vid) => (
+                      <div key={vid.id} className="relative group">
+                        <video
+                          controls
+                          src={vid.url}
+                          className="rounded shadow w-full max-h-[300px] transition duration-300 hover:scale-105"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <a
+                href={`/project/${selectedProject.id}`} // Or external link
+                className="inline-block w-full text-center mt-2 bg-blue-600 text-white text-sm py-1.5 rounded-md hover:bg-blue-700 transition"
+              >
+                View Project →
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
