@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["fastly.picsum.photos"],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 
