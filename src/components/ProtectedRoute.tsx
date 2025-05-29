@@ -1,31 +1,57 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Loader from "./Loader";
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"];
+const PRIVATE_ROUTE_PREFIXES = ["/dashboard", "/map", "/projects", "/analytics"];
+
+const matchesPrefix = (pathname: string, prefixes: string[]) => {
+  return prefixes.some(prefix => pathname.startsWith(prefix));
+};
+
+export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      const isPublic = matchesPrefix(pathname, PUBLIC_ROUTES);
+      const isPrivate = matchesPrefix(pathname, PRIVATE_ROUTE_PREFIXES);
+      setUser(firebaseUser);
       setLoading(false);
-      if (!user) {
+
+      if (pathname === "/") {
+        router.replace(firebaseUser ? "/dashboard" : "/login");
+        return;
+      }
+
+      if (!firebaseUser && isPrivate) {
         router.replace("/login");
-      } else {
+        return;
+      }
+
+      if (firebaseUser && isPublic) {
         router.replace("/dashboard");
+        return;
       }
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [pathname, router]);
 
-  if (loading) return <Loader />
+  if (loading) return <Loader />;
 
-  return <>{user && children}</>;
+  const isPublic = matchesPrefix(pathname, PUBLIC_ROUTES);
+  const isPrivate = matchesPrefix(pathname, PRIVATE_ROUTE_PREFIXES);
+
+  if (!user && isPublic) return <>{children}</>;
+  if (user && isPrivate) return <>{children}</>;
+
+  return null;
 }

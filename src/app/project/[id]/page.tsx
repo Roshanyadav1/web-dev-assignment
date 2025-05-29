@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getProjectImages, uploadProjectImage, uploadProjectMedia, getProjectMedia, deleteAllProjectImages } from '@/lib/firebase';
-import { ArrowLeft, ImagePlus, Video, Trash2, Loader2 } from 'lucide-react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { ArrowLeft, ImagePlus, Video, Loader2 } from 'lucide-react';
 
 export default function ProjectPage() {
     const { id } = useParams();
@@ -65,7 +64,6 @@ export default function ProjectPage() {
     // };
 
     return (
-        <ProtectedRoute>
             <div className="p-6 space-y-6">
                 <div className="flex items-center justify-between mb-4">
                     <button
@@ -136,7 +134,5 @@ export default function ProjectPage() {
                     </>
                 )}
             </div>
-        </ProtectedRoute>
-
     );
 }
