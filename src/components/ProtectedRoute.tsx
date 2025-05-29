@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -11,17 +11,15 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setLoading(false);
       if (!user) {
         router.replace("/login");
-      }else{
+      } else {
         router.replace("/dashboard");
       }
-      setTimeout(()=>{
-        setLoading(false)
-      }, 3000)
     });
 
     return () => unsubscribe();
@@ -29,5 +27,5 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (loading) return <Loader />
 
-  return <>{children}</>;
+  return <>{user && children}</>;
 }

@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const overallData = [
   { name: 'Jan', Planned: 10, Actual: 8 },
@@ -47,6 +48,8 @@ export default function AnalyticsPage() {
   const router = useRouter();
 
   return (
+        <ProtectedRoute>
+
     <div className="p-6 space-y-8 container">
       <button onClick={() => router.back()} className="flex items-center space-x-2 text-blue-600 hover:underline">
         <ArrowLeft size={20} />
@@ -101,5 +104,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </div>
+        </ProtectedRoute>
+
   );
 }

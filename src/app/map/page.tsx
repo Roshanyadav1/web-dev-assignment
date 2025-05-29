@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getProjectImages, getProjectMedia, getProjects } from "@/lib/firebase";
 import { Loader2, ArrowLeft, X } from "lucide-react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const libraries = ["places"] as const;
 
@@ -51,6 +52,8 @@ export default function MapPage() {
 
 
   return (
+            <ProtectedRoute>
+
     <main className="h-screen p-4 flex flex-col gap-4">
       {/* Back Button */}
       <div>
@@ -189,6 +192,8 @@ export default function MapPage() {
         )}
       </div>
     </main>
+            </ProtectedRoute>
+
   );
 }
 

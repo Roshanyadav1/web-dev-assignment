@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getProjectImages, uploadProjectImage, uploadProjectMedia, getProjectMedia, deleteAllProjectImages } from '@/lib/firebase';
 import { ArrowLeft, ImagePlus, Video, Trash2, Loader2 } from 'lucide-react';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ProjectPage() {
     const { id } = useParams();
@@ -27,7 +28,7 @@ export default function ProjectPage() {
             setLoading(false);
         } catch (error) {
             setLoading(false);
-            alert("Cought in error : ")            
+            alert("Cought in error : ")
         }
     };
 
@@ -64,75 +65,78 @@ export default function ProjectPage() {
     // };
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-                <button
-                    onClick={() => router.back()}
-                    className="flex items-center space-x-2 text-blue-600 hover:underline"
-                >
-                    <ArrowLeft size={20} />
-                    <span>Back</span>
-                </button>
-                <div className="flex items-center gap-4">
-                    <label className="cursor-pointer flex items-center gap-1 text-sm text-blue-600">
-                        <ImagePlus size={18} /> Upload Image
-                        <input type="file" accept="image/*" hidden onChange={(e) => handleFileUpload(e, 'image')} />
-                    </label>
-                    <label className="cursor-pointer flex items-center gap-1 text-sm text-blue-600">
-                        <Video size={18} /> Upload Video
-                        <input type="file" accept="video/*" hidden onChange={(e) => handleFileUpload(e, 'video')} />
-                    </label>
+        <ProtectedRoute>
+            <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                    <button
+                        onClick={() => router.back()}
+                        className="flex items-center space-x-2 text-blue-600 hover:underline"
+                    >
+                        <ArrowLeft size={20} />
+                        <span>Back</span>
+                    </button>
+                    <div className="flex items-center gap-4">
+                        <label className="cursor-pointer flex items-center gap-1 text-sm text-blue-600">
+                            <ImagePlus size={18} /> Upload Image
+                            <input type="file" accept="image/*" hidden onChange={(e) => handleFileUpload(e, 'image')} />
+                        </label>
+                        <label className="cursor-pointer flex items-center gap-1 text-sm text-blue-600">
+                            <Video size={18} /> Upload Video
+                            <input type="file" accept="video/*" hidden onChange={(e) => handleFileUpload(e, 'video')} />
+                        </label>
+                    </div>
                 </div>
+
+                {(loading || uploading) && (
+                    <div className="flex justify-center items-center text-blue-600 gap-2">
+                        <Loader2 className="animate-spin" size={20} />
+                        <span>{uploading ? 'Uploading...' : 'Loading media...'}</span>
+                    </div>
+                )}
+
+                {!loading && (
+                    <>
+                        <div>
+                            <h2 className="text-lg font-semibold mb-2">Images</h2>
+                            {images.length === 0 ? (
+                                <p className="text-gray-500 italic">No images uploaded yet.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {images.map((img) => (
+                                        <div key={img.id} className="relative group">
+                                            <img
+                                                src={img.url}
+                                                alt={img.name}
+                                                className="rounded shadow transition duration-300 hover:scale-105"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <h2 className="text-lg font-semibold mt-8 mb-2">Videos</h2>
+                            {videos.length === 0 ? (
+                                <p className="text-gray-500 italic">No videos uploaded yet.</p>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {videos.map((vid) => (
+                                        <div key={vid.id} className="relative group">
+                                            <video
+                                                controls
+                                                src={vid.url}
+                                                className="rounded shadow w-full max-h-[300px] transition duration-300 hover:scale-105"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
+        </ProtectedRoute>
 
-            {(loading || uploading) && (
-                <div className="flex justify-center items-center text-blue-600 gap-2">
-                    <Loader2 className="animate-spin" size={20} />
-                    <span>{uploading ? 'Uploading...' : 'Loading media...'}</span>
-                </div>
-            )}
-
-            {!loading && (
-                <>
-                    <div>
-                        <h2 className="text-lg font-semibold mb-2">Images</h2>
-                        {images.length === 0 ? (
-                            <p className="text-gray-500 italic">No images uploaded yet.</p>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {images.map((img) => (
-                                    <div key={img.id} className="relative group">
-                                        <img
-                                            src={img.url}
-                                            alt={img.name}
-                                            className="rounded shadow transition duration-300 hover:scale-105"
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <h2 className="text-lg font-semibold mt-8 mb-2">Videos</h2>
-                        {videos.length === 0 ? (
-                            <p className="text-gray-500 italic">No videos uploaded yet.</p>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {videos.map((vid) => (
-                                    <div key={vid.id} className="relative group">
-                                        <video
-                                            controls
-                                            src={vid.url}
-                                            className="rounded shadow w-full max-h-[300px] transition duration-300 hover:scale-105"
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
-        </div>
     );
 }
